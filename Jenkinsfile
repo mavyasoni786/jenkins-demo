@@ -1,6 +1,10 @@
 pipeline {
 	agent { label 'laptop' }
 
+    triggers {
+        pollSCM '* * * * *'
+    }
+
     stages {
         stage('Test') {
             steps {
