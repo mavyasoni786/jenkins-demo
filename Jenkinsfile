@@ -1,15 +1,12 @@
 pipeline {
-	agent { label 'android-jdk17' }
+	agent { label 'laptop' }
 
-    options {
-		disableConcurrentBuilds abortPrevious: true
-    }
     stages {
         stage('Test') {
             steps {
-				sh './gradlew clean test1'
+				sh './gradlew clean test'
             }
-            }
+        }
 
         stage('Build Apk') {
              steps {
