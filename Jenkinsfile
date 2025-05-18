@@ -5,10 +5,15 @@ pipeline {
         pollSCM '* * * * *'
     }
 
+    environment {
+        APP_KEY = credentials("secret-app-key")
+    }
+
     stages {
         stage('Test') {
             steps {
 				sh './gradlew clean test'
+				echo "APP KEY : ${APP_KEY}"
             }
         }
 
