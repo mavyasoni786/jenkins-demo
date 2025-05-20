@@ -41,7 +41,7 @@ pipeline {
 
         stage('clean up'){
             steps{
-                sh('rm -rm .signing')
+                sh('rm -rf .signing')
             }
         }
     }
