@@ -4,6 +4,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val localKeyAlias = System.getenv()["APP_KEYSTORE_CREDENTIALS_USR"] ?: extra["APP_KEYSTORE_ALIAS"].toString()
+val localKeyPassword = System.getenv()["APP_KEYSTORE_CREDENTIALS_PSW"] ?: extra["APP_KEYSTORE_PASSWORD"].toString()
+val localStoreFilename = "../.signing/debug.keystore"
+val localStorePassword = System.getenv()["APP_KEYSTORE_CREDENTIALS_PSW"] ?: extra["APP_KEYSTORE_PASSWORD"].toString()
+
+
 android {
     namespace = "com.ms.jenkins"
     compileSdk = 35
@@ -18,6 +24,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("jenkins") {
+            try {
+                keyAlias = localKeyAlias
+                keyPassword = localKeyPassword
+                storeFile = file(localStoreFilename)
+                storePassword = localStorePassword
+            } catch (ignored: Exception) {
+                throw InvalidUserDataException(
+                    "You should define APP_KEYSTORE_ALIAS and APP_KEYSTORE_PASSWORD in local.properties.",
+                )
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -25,6 +46,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("jenkins")
         }
     }
     compileOptions {
@@ -37,6 +59,9 @@ android {
     buildFeatures {
         compose = true
     }
+
+
+
 }
 
 dependencies {
