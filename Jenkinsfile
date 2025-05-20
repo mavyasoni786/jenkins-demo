@@ -12,12 +12,14 @@ pipeline {
     }
 
     stages {
+
         stage('configure') {
             steps {
                 sh('mkdir .signing')
                 sh('echo ${APP_KEYSTORE} | base64 -d > .signing/debug.keystore')
             }
         }
+
         stage('Test') {
             steps {
 				sh './gradlew clean test'
@@ -36,6 +38,7 @@ pipeline {
                 archiveArtifacts artifacts: 'app/build/outputs/apk/**/*.apk'
             }
         }
+
         stage('clean up'){
             steps{
                 sh('rm -rm .signing')
