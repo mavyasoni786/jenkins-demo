@@ -36,5 +36,10 @@ pipeline {
                 archiveArtifacts artifacts: 'app/build/outputs/apk/**/*.apk'
             }
         }
+        stage('clean up'){
+            steps{
+                sh('rm -rm .signing')
+            }
+        }
     }
 }
