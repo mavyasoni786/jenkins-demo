@@ -27,13 +27,12 @@ pipeline {
 
         stage('Build Apk') {
              steps {
-                sh './gradlew clean assemble'
+                sh './gradlew assemble'
              }
         }
 
         stage('Publish Apk') {
         	steps {
-                sh './gradlew assemble'
                 archiveArtifacts artifacts: 'app/build/outputs/apk/**/*.apk'
             }
         }
