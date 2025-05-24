@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("jacoco")
 }
 
 val localKeyAlias = System.getenv()["APP_KEYSTORE_CREDENTIALS_USR"] ?: extra["APP_KEYSTORE_ALIAS"].toString()
@@ -65,7 +66,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -81,4 +81,168 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+val excludes =
+    listOf(
+        "**/androidTest/**",
+        "**/test/**",
+        "**/databinding/*Binding.*",
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        // butterKnife
+        "**/*$*ViewInjector*.*",
+        "**/*$*ViewBinder*.*",
+        "**/Lambda$*.class",
+        "**/Lambda.class",
+        "**/*Lambda.class",
+        "**/*Lambda*.class",
+        "**/*_MembersInjector.class",
+        "**/Dagger*Component*.*",
+        "**/*Module_*Factory.class",
+        "**/di/module/*",
+        "**/*_Factory*.*",
+        "**/*Module*.*",
+        "**/*Dagger*.*",
+        "**/*Hilt*.*",
+        // kotlin
+        "**/*MapperImpl*.*",
+        "**/*$*ViewInjector*.*",
+        "**/*$*ViewBinder*.*",
+        "**/BuildConfig.*",
+        "**/*Component*.*",
+        "**/*BR*.*",
+        "**/Manifest*.*",
+        "**/*Lambda$*.*",
+        "**/*Companion*.*",
+        "**/*Module*.*",
+        "**/*Dagger*.*",
+        "**/*Hilt*.*",
+        "**/*MembersInjector*.*",
+        "**/*_MembersInjector.class",
+        "**/*_Factory*.*",
+        "**/*_Provide*Factory*.*",
+        "**/*Extensions*.*",
+    )
+
+fun createVariantCoverage(variant: com.android.build.gradle.api.BaseVariant) {
+    val variantName = variant.name
+    val testTaskName = "test${variantName.capitalize()}UnitTest"
+
+    // Add unit test coverage tasks
+    tasks.register<JacocoReport>("${testTaskName}Coverage") {
+        group = "Reporting"
+        description = "Generate Jacoco coverage reports for the ${variantName.capitalize()} build."
+        dependsOn(tasks.named(testTaskName))
+
+        reports {
+            xml.required = true
+        }
+
+        val javaClasses =
+            fileTree(
+                mapOf(
+                    "dir" to variant.javaCompileProvider.get().destinationDir,
+                    "excludes" to excludes,
+                ),
+            )
+        val kotlinClasses =
+            fileTree(
+                mapOf(
+                    "dir" to "$buildDir/tmp/kotlin-classes/$variantName",
+                    "excludes" to excludes,
+                ),
+            )
+
+        classDirectories.setFrom(files(javaClasses, kotlinClasses))
+
+        sourceDirectories.setFrom(
+            files(
+                "$projectDir/src/main/java",
+                "$projectDir/src/$variantName/java",
+                "$projectDir/src/main/kotlin",
+                "$projectDir/src/$variantName/kotlin",
+            ),
+        )
+
+        executionData.setFrom(files("build/jacoco/$testTaskName.exec"))
+
+        doLast {
+            val m =
+                File("$buildDir/reports/jacoco/${testTaskName}Coverage/html/index.html")
+                    .readText()
+                    .let {
+                        print(it)
+                        Regex("Total[^%]*>(\\d{1,3}%)").find(it)?.groupValues?.get(1)
+                    }
+            if (m != null) {
+                println("Test coverage: $m")
+            }
+        }
+    }
+
+    // Add unit test coverage verification tasks
+    tasks.register<JacocoCoverageVerification>("${testTaskName}CoverageVerification") {
+        group = "Reporting"
+        description = "Verifies Jacoco coverage for the ${variantName.capitalize()} build."
+        dependsOn("${testTaskName}Coverage")
+
+        violationRules {
+            rule {
+                limit {
+                    minimum = BigDecimal(0)
+                }
+            }
+            rule {
+                element = "BUNDLE"
+                limit {
+                    counter = "LINE"
+                    value = "COVEREDRATIO"
+                    minimum = BigDecimal(0.30)
+                }
+            }
+        }
+
+        val javaClasses =
+            fileTree(
+                mapOf(
+                    "dir" to variant.javaCompileProvider.get().destinationDir,
+                    "excludes" to excludes,
+                ),
+            )
+        val kotlinClasses =
+            fileTree(
+                mapOf(
+                    "dir" to "$buildDir/tmp/kotlin-classes/$variantName",
+                    "excludes" to excludes,
+                ),
+            )
+
+        classDirectories.setFrom(files(javaClasses, kotlinClasses))
+
+        sourceDirectories.setFrom(
+            files(
+                "$projectDir/src/main/java",
+                "$projectDir/src/$variantName/java",
+                "$projectDir/src/main/kotlin",
+                "$projectDir/src/$variantName/kotlin",
+            ),
+        )
+
+        executionData.setFrom(files("build/jacoco/$testTaskName.exec"))
+    }
+}
+afterEvaluate {
+    android.applicationVariants
+        .configureEach(::createVariantCoverage)
 }

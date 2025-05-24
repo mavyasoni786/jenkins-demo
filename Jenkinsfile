@@ -23,7 +23,25 @@ pipeline {
         stage('Test') {
             steps {
 				sh './gradlew clean test'
-				echo "APP KEY : ${APP_KEY}"
+            }
+        }
+
+        stage('Jacoco code coverage'){
+            steps {
+                sh './gradlew testReleaseUnitTestCoverage'
+            }
+            post {
+                always {
+                    junit 'app/build/test-results/**/*.xml'
+                    publishHTML target: [
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: false,
+                            keepAll: true,
+                            reportDir: 'app/build/reports/jacoco/testReleaseUnitTestCoverage/html',
+                            reportFiles: 'index.html',
+                            reportName: 'Jacoco Report'
+                        ]
+                    }
             }
         }
 
@@ -40,7 +58,7 @@ pipeline {
         }
 
         stage('clean up'){
-            steps{
+            steps {
                 sh('rm -rf .signing')
             }
         }
