@@ -5,6 +5,10 @@ pipeline {
         pollSCM '* * * * *'
     }
 
+    options {
+        disableConcurrentBuilds abortPrevious: true
+    }
+
     environment {
         APP_KEY = credentials("secret-app-key")
         APP_KEYSTORE = credentials("secret-app-keystore")
@@ -27,6 +31,9 @@ pipeline {
         }
 
         stage('Jacoco code coverage'){
+            when {
+                branch 'main'
+            }
             steps {
                 sh './gradlew testReleaseUnitTestCoverage'
             }
