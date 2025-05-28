@@ -1,5 +1,8 @@
 pipeline {
 	agent { label 'Laptop-Node' }
+	triggers {
+        pollSCM '* * * * *'
+    }
     stages {
         stage('Dev') {
             steps {
