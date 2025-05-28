@@ -1,21 +1,72 @@
 pipeline {
 	agent { label 'Laptop-Node' }
+
+    triggers {
+        pollSCM '* * * * *'
+    }
+
+    options {
+        disableConcurrentBuilds abortPrevious: true
+    }
+
+    environment {
+        APP_KEY = credentials("secret-app-key")
+        APP_KEYSTORE = credentials("secret-app-keystore")
+        APP_KEYSTORE_CREDENTIALS = credentials("secret-app-keystore-credentials")
+    }
+
     stages {
-        stage('Dev') {
+
+        stage('configure') {
             steps {
-                sh('echo Dev')
+                sh('mkdir .signing')
+                sh('echo ${APP_KEYSTORE} | base64 -d > .signing/debug.keystore')
             }
         }
 
-        stage('Stage') {
+        stage('Test') {
             steps {
-                sh('echo Stage')
+				sh './gradlew clean test'
             }
         }
 
-        stage('Prod') {
+        stage('Jacoco code coverage'){
+            when {
+                branch 'main'
+            }
             steps {
-                sh('echo Prod')
+                sh './gradlew testReleaseUnitTestCoverage'
+            }
+            post {
+                always {
+                    junit 'app/build/test-results/**/*.xml'
+                    publishHTML target: [
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: false,
+                            keepAll: true,
+                            reportDir: 'app/build/reports/jacoco/testReleaseUnitTestCoverage/html',
+                            reportFiles: 'index.html',
+                            reportName: 'Jacoco Report'
+                        ]
+                    }
+            }
+        }
+
+        stage('Build Apk') {
+             steps {
+                sh './gradlew assemble'
+             }
+        }
+
+        stage('Publish Apk') {
+        	steps {
+                archiveArtifacts artifacts: 'app/build/outputs/apk/**/*.apk'
+            }
+        }
+
+        stage('clean up'){
+            steps {
+                sh('rm -rf .signing')
             }
         }
     }
