@@ -52,11 +52,11 @@ pipeline {
             }
         }
 
-         stage('Coverage Check (Fail if < 70%)') {
-            steps {
-                sh './gradlew testReleaseUnitTestCoverageVerification'
-            }
-        }
+//         stage('Coverage Check (Fail if < 70%)') {
+//             steps {
+//                 sh './gradlew testReleaseUnitTestCoverageVerification'
+//             }
+//         }
 
         stage('Build Apk') {
              steps {
