@@ -1,72 +1,21 @@
 pipeline {
-	agent { label 'laptop' }
-
-    triggers {
-        pollSCM '* * * * *'
-    }
-
-    options {
-        disableConcurrentBuilds abortPrevious: true
-    }
-
-    environment {
-        APP_KEY = credentials("secret-app-key")
-        APP_KEYSTORE = credentials("secret-app-keystore")
-        APP_KEYSTORE_CREDENTIALS = credentials("secret-app-keystore-credentials")
-    }
-
+	agent { label 'Laptop-Node' }
     stages {
-
-        stage('configure') {
+        stage('Dev') {
             steps {
-                sh('mkdir .signing')
-                sh('echo ${APP_KEYSTORE} | base64 -d > .signing/debug.keystore')
+                sh('echo Dev')
             }
         }
 
-        stage('Test') {
+        stage('Stage') {
             steps {
-				sh './gradlew clean test'
+                sh('echo Stage')
             }
         }
 
-        stage('Jacoco code coverage'){
-            when {
-                branch 'main'
-            }
+        stage('Prod') {
             steps {
-                sh './gradlew testReleaseUnitTestCoverage'
-            }
-            post {
-                always {
-                    junit 'app/build/test-results/**/*.xml'
-                    publishHTML target: [
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'app/build/reports/jacoco/testReleaseUnitTestCoverage/html',
-                            reportFiles: 'index.html',
-                            reportName: 'Jacoco Report'
-                        ]
-                    }
-            }
-        }
-
-        stage('Build Apk') {
-             steps {
-                sh './gradlew assemble'
-             }
-        }
-
-        stage('Publish Apk') {
-        	steps {
-                archiveArtifacts artifacts: 'app/build/outputs/apk/**/*.apk'
-            }
-        }
-
-        stage('clean up'){
-            steps {
-                sh('rm -rf .signing')
+                sh('echo Prod')
             }
         }
     }
