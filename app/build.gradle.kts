@@ -208,7 +208,7 @@ fun createVariantCoverage(variant: com.android.build.gradle.api.BaseVariant) {
                 limit {
                     counter = "LINE"
                     value = "COVEREDRATIO"
-                    minimum = BigDecimal(0.30)
+                    minimum = BigDecimal(0.70)
                 }
             }
         }
