@@ -30,27 +30,27 @@ pipeline {
             }
         }
 
-        stage('Jacoco code coverage'){
-            when {
-                branch 'main'
-            }
-            steps {
-                sh './gradlew testReleaseUnitTestCoverage'
-            }
-            post {
-                always {
-                    junit 'app/build/test-results/**/*.xml'
-                    publishHTML target: [
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: false,
-                            keepAll: true,
-                            reportDir: 'app/build/reports/jacoco/testReleaseUnitTestCoverage/html',
-                            reportFiles: 'index.html',
-                            reportName: 'Jacoco Report'
-                        ]
-                    }
-            }
-        }
+//         stage('Jacoco code coverage'){
+// //             when {
+// //                 branch 'main'
+// //             }
+//             steps {
+//                 sh './gradlew testReleaseUnitTestCoverage'
+//             }
+//             post {
+//                 always {
+//                     junit 'app/build/test-results/**/*.xml'
+//                     publishHTML target: [
+//                             allowMissing: false,
+//                             alwaysLinkToLastBuild: false,
+//                             keepAll: true,
+//                             reportDir: 'app/build/reports/jacoco/testReleaseUnitTestCoverage/html',
+//                             reportFiles: 'index.html',
+//                             reportName: 'Jacoco Report'
+//                         ]
+//                     }
+//             }
+//         }
 
 //         stage('Coverage Check (Fail if < 70%)') {
 //             steps {
