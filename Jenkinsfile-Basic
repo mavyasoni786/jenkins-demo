@@ -6,19 +6,19 @@ pipeline {
     stages {
         stage('Dev') {
             steps {
-                sh('echo Dev')
+                sh('echo Dev1')
             }
         }
 
         stage('Stage') {
             steps {
-                sh('echo Stage')
+                sh('echo Stage1')
             }
         }
 
         stage('Prod') {
             steps {
-                sh('echo Prod')
+                sh('echo Prod1')
             }
         }
     }
